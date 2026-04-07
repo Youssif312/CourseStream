@@ -1,48 +1,119 @@
-# CourseStream: Learning Management System
+# 📚 CourseStream
 
-CourseStream is a robust Flutter application designed as a Learning Management System (LMS). It features a multi-role architecture supporting **Admins**, **Teachers**, and **Students**, with integrated secure video playback and a local credit-based payment system.
-
----
-
-## 🚀 Project Overview
-
-The application serves as a platform where teachers can host educational content, students can purchase and view courses, and admins can manage the entire ecosystem. It emphasizes security and offline-first data persistence.
-
-### Key Features
-
-#### 👑 Admin Dashboard
-* **User Management:** Create, monitor, and remove Student and Teacher accounts.
-* **Course Oversight:** View all courses and their assigned instructors.
-* **Monetization:** Generate unique, one-time-use payment codes to top up student balances.
-* **Global View:** Monitor payment code usage, including who redeemed them and when.
-
-#### 👨‍🏫 Teacher Portal
-* **Content Creation:** Add new courses with descriptions, pricing, and video links.
-* **Curriculum Management:** View and manage specific courses assigned by the admin.
-* **Course Preview:** Access a dedicated preview mode for their own video content.
-
-#### 🎓 Student Experience
-* **Course Marketplace:** Browse available courses and purchase them using an in-app wallet.
-* **My Learning:** A dedicated space for purchased courses with progress tracking.
-* **Wallet System:** Redeem admin-generated codes to increase account balance.
-* **Secure Video Player:** Integrated YouTube playback for course lessons.
+A Flutter mobile application for managing and delivering online courses, with role-based access for admins, teachers, and students. Supports YouTube video playback, a balance/payment-code system, and secure screen protection.
 
 ---
 
-## 🛠 Technical Stack
+## Features
 
-* **State Management:** `Provider` for reactive UI updates and centralized business logic.
-* **Local Persistence:** `shared_preferences` for storing user data, course lists, and transaction history.
-* **Security:** * `flutter_windowmanager`: Prevents screenshots and screen recordings of course content.
-    * Simple Base64 password hashing for local data protection.
-* **Video Playback:** `Youtubeer_flutter` for seamless streaming.
-* **UI/UX:** Flutter Material 3 with a custom indigo/teal theme and responsive tabbed navigation.
+### Roles
+| Role | Capabilities |
+|---|---|
+| **Admin** | Manage students & teachers, add courses, generate payment codes |
+| **Teacher** | View assigned courses, add new courses (auto-assigned), change password |
+| **Student** | Browse & purchase courses, watch videos, redeem payment codes, change password |
+
+### Highlights
+- Role-based login routing — each role lands on its own home screen
+- YouTube video playback via `youtube_player_flutter` with HD and autoplay flags
+- Payment code system — admin generates codes, students redeem them to top up balance
+- Screen capture protection via `flutter_windowmanager` (`FLAG_SECURE`)
+- Fully offline-capable — all data persisted locally with `shared_preferences`
+- Portrait-lock enforced at app and post-video level
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
-```text
+```
 lib/
-├── main.dart           # Entry point, AppProvider, Models, and UI Screens
-└── videoplayer.dart    # Dedicated secure YouTube player implementation
+├── main.dart                  # Entry point — init storage, orientation lock, run app
+├── app.dart                   # MaterialApp, theme, root widget
+│
+├── models/
+│   ├── user.dart              # User model + UserRole enum
+│   ├── course.dart            # Course model
+│   ├── payment_code.dart      # PaymentCode model
+│   └── models.dart            # Barrel export
+│
+├── storage/
+│   └── app_storage.dart       # SharedPreferences read/write + seed data
+│
+├── providers/
+│   └── app_provider.dart      # ChangeNotifier — all business logic & state
+│
+├── pages/
+│   ├── login_page.dart        # Login screen with role-based routing
+│   ├── student_home.dart      # Student: my courses / available / profile tabs
+│   ├── teacher_home.dart      # Teacher: my courses / add course / profile tabs
+│   ├── admin_home.dart        # Admin: students / teachers / courses / add / codes
+│   ├── video_player_page.dart # YouTube player page
+│   └── pages.dart             # Barrel export
+│
+└── widgets/
+    ├── course_card.dart        # Reusable course list tile
+    ├── profile_tabs.dart       # StudentProfileTab + TeacherProfileTab
+    ├── role_badge.dart         # Colored role chip (Admin / Teacher / Student)
+    └── widgets.dart            # Barrel export
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Flutter SDK `>=3.0.0`
+- Android device or emulator (the `flutter_windowmanager` package is Android-only)
+
+### Installation
+
+```bash
+git clone https://github.com/Youssif312/CourseStream.git
+cd CourseStream
+flutter pub get
+flutter run
+```
+
+### Default Admin Credentials
+
+```
+Username: admin
+Password: admin123
+```
+
+---
+
+## Dependencies
+
+| Package | Purpose |
+|---|---|
+| [`provider`](https://pub.dev/packages/provider) | State management |
+| [`shared_preferences`](https://pub.dev/packages/shared_preferences) | Local persistence |
+| [`youtube_player_flutter`](https://pub.dev/packages/youtube_player_flutter) | Embedded YouTube playback |
+| [`flutter_windowmanager`](https://pub.dev/packages/flutter_windowmanager) | Screen capture prevention |
+| [`uuid`](https://pub.dev/packages/uuid) | ID and payment code generation |
+
+---
+
+## Data Flow
+
+```
+AppStorage (SharedPreferences)
+       │  load / save
+       ▼
+AppProvider (ChangeNotifier)
+       │  exposes state + actions
+       ▼
+Pages & Widgets (Consumer / Provider.of)
+```
+
+All data is stored as JSON in `SharedPreferences` under versioned keys (`app_users_v2`, `app_courses_v1`, `app_codes_v1`). There is no remote backend — everything runs on-device.
+
+---
+
+## Security Notes
+
+- Passwords are stored as Base64-encoded strings. (NOT FOR PRODUCTION).
+- `FLAG_SECURE` prevents screenshots and screen recording on Android.
+- The admin account cannot be deleted.
+
